@@ -17,6 +17,7 @@
     }
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:${containerEnv:HOME}/.local/bin"
+    "PATH": "${containerEnv:PATH}:${containerEnv:HOME}/.local/bin",
+    "OLLAMA_BASE_URL": "http://host.docker.internal:11434"
   }
 }

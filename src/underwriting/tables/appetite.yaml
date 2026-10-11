@@ -1,0 +1,115 @@
+# Every matching row is sent to the model. Each row records one decision.
+written_states: [CA, TX, IL, OH, PA]
+rows:
+  - id: UG-1
+    reason_code: license_status
+    decision: deny
+    guidance: A suspended or revoked license.
+    score: any
+    when:
+      field: license_status
+      op: in
+      value: [suspended, revoked]
+
+  - id: UG-2
+    reason_code: state_not_written
+    decision: deny
+    guidance: A state the company does not write.
+    score: any
+    when:
+      field: state_written
+      op: eq
+      value: false
+
+  - id: UG-3
+    reason_code: knockout
+    decision: deny
+    guidance: A DUI in the last five years, or three or more at-fault accidents.
+    score: any
+    when:
+      any:
+        - {field: dui, op: eq, value: true}
+        - {field: at_fault, op: gte, value: 3}
+
+  - id: UG-4
+    reason_code: report_unavailable
+    decision: refer
+    guidance: >
+      A missing motor vehicle report, claims report, or credit report outside California.
+    score: any
+    when:
+      field: reports_missing
+      op: eq
+      value: true
+
+  - id: UG-5
+    reason_code: scoring_unavailable
+    decision: refer
+    guidance: A missing premium or risk score.
+    score: any
+    when:
+      field: score_missing
+      op: eq
+      value: true
+
+  - id: UG-6
+    reason_code: youthful_high_score
+    decision: deny
+    guidance: >
+      A score from 70 to 100 on a driver under 25 in an urban territory, with two or
+      more moving violations and an at-fault accident.
+    score: {min: 70, max: 100}
+    when:
+      all:
+        - {field: age, op: lt, value: 25}
+        - {field: territory, op: eq, value: urban}
+        - {field: violations, op: gte, value: 2}
+        - {field: at_fault, op: gte, value: 1}
+
+  - id: UG-7
+    reason_code: elevated_score
+    decision: refer
+    guidance: A score from 70 to 100.
+    score: {min: 70, max: 100}
+
+  - id: UG-8
+    reason_code: stacked_mid_score
+    decision: refer
+    guidance: >
+      A score from 46 to 69 on a driver under 25 in an urban territory, or with two
+      or more aggravators. Aggravators are a moving violation, an at-fault accident,
+      a lapse or no prior insurance, and credit below 640 outside California.
+    score: {min: 46, max: 69}
+    when:
+      any:
+        - all:
+            - {field: age, op: lt, value: 25}
+            - {field: territory, op: eq, value: urban}
+        - {field: aggravator_count, op: gte, value: 2}
+
+  - id: UG-9
+    reason_code: mid_score
+    decision: approve
+    guidance: A score from 46 to 69.
+    score: {min: 46, max: 69}
+
+  - id: UG-10
+    reason_code: youthful_low_score
+    decision: refer
+    guidance: >
+      A score from 0 to 45 on a driver under 25 in an urban territory with a violation
+      or an at-fault accident.
+    score: {min: 0, max: 45}
+    when:
+      all:
+        - {field: age, op: lt, value: 25}
+        - {field: territory, op: eq, value: urban}
+        - any:
+            - {field: violations, op: gte, value: 1}
+            - {field: at_fault, op: gte, value: 1}
+
+  - id: UG-11
+    reason_code: within_appetite
+    decision: approve
+    guidance: A score from 0 to 45.
+    score: {min: 0, max: 45}

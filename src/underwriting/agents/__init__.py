@@ -1,1 +1,1 @@
-"""Standalone agent functions (Part 2)."""
+"""The four underwriting agents. Import each one from its own module."""
