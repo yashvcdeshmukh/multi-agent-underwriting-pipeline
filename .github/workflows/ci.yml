@@ -28,6 +28,4 @@ jobs:
 
       - name: Pytest
         run: uv run pytest
-        env:
-          # Agent unit tests will mock LLM calls; pipeline integration may skip without key
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        # Unit tests mock Ollama; no local LLM required in CI

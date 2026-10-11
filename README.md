@@ -7,9 +7,9 @@ Insurance application pipeline with four LLM-backed agents:
 3. **Risk scoring** — produce a structured risk score  
 4. **Recommendation** — approve, deny, or refer to a human underwriter  
 
-## State & memory
+## State and memory
 
-Design decision and agent I/O contract: [`docs/STATE_AND_MEMORY.md`](docs/STATE_AND_MEMORY.md).
+**Message passing.** [`docs/state-and-memory.md`](docs/state-and-memory.md) is the locked decision. `underwrite` is the only coordinator. Each agent receives one object and returns the next. There is no shared case row.
 
 ## Setup (UV)
 
@@ -18,7 +18,16 @@ Design decision and agent I/O contract: [`docs/STATE_AND_MEMORY.md`](docs/STATE_
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh   # if needed
 uv sync --all-extras
-cp .env.example .env   # add OPENAI_API_KEY
+cp .env.example .env
+```
+
+### Ollama + Qwen 3 8B
+
+Live runs call local Ollama at `http://127.0.0.1:11434`. No API key. Default model: **`qwen3:8b`** (set `OLLAMA_MODEL` if your tag differs). Unit tests use a scripted reply so pytest does not start Ollama.
+
+```bash
+ollama serve          # if not already running
+ollama pull qwen3:8b
 ```
 
 Run tests:
@@ -27,7 +36,7 @@ Run tests:
 uv run pytest
 ```
 
-Run the full pipeline (once implemented):
+Run the full pipeline:
 
 ```bash
 uv run python -m underwriting.pipeline
@@ -37,13 +46,21 @@ uv run python -m underwriting.pipeline
 
 Open the folder in VS Code / Cursor **Dev Containers** when ready. See [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
 
-## Assignment parts
+## Layout
 
-| Part | Location (planned) |
-|------|---------------------|
-| 1 Design | `docs/STATE_AND_MEMORY.md` |
-| 2 Agents + unit tests | `src/underwriting/agents/`, `tests/` |
-| 3 Pipeline + tracing | `src/underwriting/pipeline.py`, `src/underwriting/tracing.py` |
-| 4 Cost/latency | `docs/COST_LATENCY.md`, trace JSON under `traces/` |
-| 5 Failure handling | `src/underwriting/failure.py` |
-| 6 CI | `.github/workflows/ci.yml` |
+| Path | Role |
+|------|------|
+| `docs/state-and-memory.md` | Part 1, locked |
+| `docs/scale.md` | What changes when this leaves the proof of concept |
+| `docs/cost-latency.md` | Part 4, after the three traces |
+| `src/underwriting/domain/models.py` | Intake, enriched, scored, and decision messages |
+| `src/underwriting/tools/rating.py` | Factor table `pa-table-2026.1` |
+| `src/underwriting/tables/appetite.yaml` | Appetite guide. The model chooses the disposition |
+| `src/underwriting/tools/appetite.py` | Every matching appetite row |
+| `src/underwriting/tools/reports.py` | MVR, claims, and credit fixtures |
+| `src/underwriting/llm.py` | `Model` protocol, scripted model, Ollama, `complete_as` |
+| `src/underwriting/tracing.py` | Span per agent call |
+| `src/underwriting/agents/` | Intake, enrichment, scoring, and recommendation |
+| `src/underwriting/pipeline.py` | `underwrite`. Live runs use local Ollama |
+| `src/underwriting/fixtures/applications.py` | APP-001, APP-002, APP-003, APP-TIMEOUT |
+| `.github/workflows/ci.yml` | pytest |

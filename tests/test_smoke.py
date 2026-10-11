@@ -1,4 +1,4 @@
-"""Placeholder until agent tests land in Part 2."""
+"""The package imports and reports its version."""
 
 
 def test_package_imports():

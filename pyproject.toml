@@ -5,16 +5,17 @@ description = "Multi-agent insurance underwriting pipeline (intake → enrichmen
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "mypy>=2.4.0",
     "openai>=1.40.0",
     "pydantic>=2.7.0",
     "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.2",
     "tenacity>=8.3.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.2.0",
-    "pytest-asyncio>=0.23.0",
     "ruff>=0.5.0",
 ]
 
@@ -24,6 +25,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/underwriting"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/underwriting/tables/appetite.yaml" = "underwriting/tables/appetite.yaml"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -36,3 +40,17 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = "yaml"
+ignore_missing_imports = true
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+]
